@@ -1,11 +1,16 @@
 Summary:	Application Matching Framework
 Name:		bamf
-Version:	0.3.6
+Version:	0.4.1
 Release:	1
 License:	GPL v3/LGPL v3
 Group:		Libraries
-Source0:	https://launchpad.net/bamf/0.3/0.3.6/+download/%{name}-%{version}.tar.gz
-# Source0-md5:	56b0b0ac2d3f2a0401db268c78cc8527
+#Source0:	https://launchpad.net/bamf/0.3/%{version}/+download/%{name}-%{version}.tar.gz
+# bzr branch lp:bamf/0.4
+Source0:	%{name}-%{version}.tar.xz
+# Source0-md5:	a14722b1713e9c6d064b2d3a5f003977
+Patch0:		%{name}-r542.patch
+# https://github.com/alucryd/aur-alucryd/tree/master/pantheon/stable/bamf
+Patch1:		%{name}-matcher.patch
 BuildRequires:	autoconf
 BuildRequires:	automake
 BuildRequires:	dbus-glib-devel
@@ -17,8 +22,6 @@ BuildRequires:	pkg-config
 BuildRequires:	vala-vapigen
 Requires:	%{name}-libs = %{version}-%{release}
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
-
-%define		_libexecdir	%{_libdir}/bamf
 
 %description
 Removes the headache of applications matching into a simple DBus
@@ -49,20 +52,27 @@ BAMF API documentation.
 
 %prep
 %setup -q
+%patch0 -p0
+%patch1 -p1
+
 # kill gnome common deps
-sed -i -e 's/GNOME_COMPILE_WARNINGS.*//g'	\
+%{__sed} -i -e 's/GNOME_COMPILE_WARNINGS.*//g'	\
     -i -e 's/GNOME_MAINTAINER_MODE_DEFINES//g'	\
     -i -e 's/GNOME_COMMON_INIT//g'		\
     -i -e 's/GNOME_CXX_WARNINGS.*//g'		\
-    -i -e 's/GNOME_DEBUG_CHECK//g' configure.in
+    -i -e 's/GNOME_DEBUG_CHECK//g' 		\
+    -i -e '/SHAMROCK.*/d' configure.ac
 
 %build
 %{__libtoolize}
+%{__gtkdocize}
 %{__aclocal} -I m4
 %{__autoconf}
 %{__autoheader}
 %{__automake}
 %configure \
+	--disable-silent-rules	\
+	--disable-static	\
 	--enable-webapps=no	\
 	--with-html-dir=%{_gtkdocdir}
 %{__make}
@@ -82,25 +92,28 @@ rm -rf $RPM_BUILD_ROOT
 %files
 %defattr(644,root,root,755)
 %doc AUTHORS ChangeLog NEWS README TODO
-%dir %{_libexecdir}
-%attr(755,root,root) %{_libexecdir}/bamfdaemon
+# libexecdir hardcoded
+%dir %{_libdir}/bamf
+%attr(755,root,root) %{_libdir}/bamf/bamfdaemon
 %{_datadir}/dbus-1/services/org.ayatana.bamf.service
 
 %files libs
 %defattr(644,root,root,755)
-%attr(755,root,root) %ghost %{_libdir}/libbamf3.so.0
+%attr(755,root,root) %ghost %{_libdir}/libbamf3.so.1
 %attr(755,root,root) %{_libdir}/libbamf3.so.*.*.*
-%{_libdir}/girepository-1.0/Bamf-0.2.typelib
+%{_libdir}/girepository-1.0/Bamf-3.typelib
 
 %files devel
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/libbamf3.so
 %{_includedir}/libbamf3
 %{_pkgconfigdir}/libbamf3.pc
-%{_datadir}/gir-1.0/Bamf-0.2.gir
+%{_datadir}/gir-1.0/Bamf-3.gir
 %{_datadir}/vala/vapi/libbamf3.vapi
 
+%if 0
 %files apidocs
 %defattr(644,root,root,755)
 %{_gtkdocdir}/libbamf
+%endif
 
