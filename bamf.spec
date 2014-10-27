@@ -1,16 +1,12 @@
 Summary:	Application Matching Framework
 Name:		bamf
-Version:	0.4.1
+Version:	0.5.0
 Release:	1
 License:	GPL v3/LGPL v3
 Group:		Libraries
-#Source0:	https://launchpad.net/bamf/0.3/%{version}/+download/%{name}-%{version}.tar.gz
-# bzr branch lp:bamf/0.4
-Source0:	%{name}-%{version}.tar.xz
-# Source0-md5:	a14722b1713e9c6d064b2d3a5f003977
-Patch0:		%{name}-r542.patch
-# https://github.com/alucryd/aur-alucryd/tree/master/pantheon/stable/bamf
-Patch1:		%{name}-matcher.patch
+Source0:	https://launchpad.net/bamf/0.5/%{version}/+download/%{name}-%{version}.tar.gz
+# Source0-md5:	0d039bcbfc7da874fefa09703e3cf4e6
+Patch0:		fix-legacy-window-test.patch
 BuildRequires:	autoconf
 BuildRequires:	automake
 BuildRequires:	dbus-glib-devel
@@ -53,7 +49,6 @@ BAMF API documentation.
 %prep
 %setup -q
 %patch0 -p0
-%patch1 -p1
 
 # kill gnome common deps
 %{__sed} -i -e 's/GNOME_COMPILE_WARNINGS.*//g'	\
@@ -83,6 +78,8 @@ rm -rf $RPM_BUILD_ROOT
 %{__make} install \
 	DESTDIR=$RPM_BUILD_ROOT
 
+%{__rm} $RPM_BUILD_ROOT%{_libdir}/*.la
+
 %clean
 rm -rf $RPM_BUILD_ROOT
 
@@ -99,7 +96,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %files libs
 %defattr(644,root,root,755)
-%attr(755,root,root) %ghost %{_libdir}/libbamf3.so.1
+%attr(755,root,root) %ghost %{_libdir}/libbamf3.so.2
 %attr(755,root,root) %{_libdir}/libbamf3.so.*.*.*
 %{_libdir}/girepository-1.0/Bamf-3.typelib
 
@@ -111,9 +108,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_datadir}/gir-1.0/Bamf-3.gir
 %{_datadir}/vala/vapi/libbamf3.vapi
 
-%if 0
 %files apidocs
 %defattr(644,root,root,755)
 %{_gtkdocdir}/libbamf
-%endif
 
